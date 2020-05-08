@@ -3,13 +3,31 @@ from google.oauth2 import service_account
 import time
 
 class SheetService:
-  MAX_RETRIES = 5 # Max amount of retries available
-  TIMEOUT_WAIT = 2.5 # Time between retries
+  @property
+  def MaxRetries(self) -> int:
+    return self.__max_retries
+
+  @MaxRetries.setter
+  def MaxRetries(self, value : int) -> None:
+    if value < 1:
+      raise ValueError("Max retries must be greater than 0")
+    self.__max_retries = value
+
+  @property
+  def TimeoutWait(self) -> float:
+    return self.__timeout_wait
+
+  @TimeoutWait.setter
+  def TimeoutWait(self, value : float) -> None:
+    if value < 0:
+      raise ValueError("Value must be greater than 0")
+      self.__timeout_wait = value
 
   def __init__(self):
     self.__scopes = ['https://www.googleapis.com/auth/spreadsheets'] # Read and write permissions
     self.__service_acc_file = "service-account.json"
-    self.__enabled = False
+    self.__max_retries = 5
+    self.__timeout_wait = 2.5
 
   def Login(self) -> None:
     # Create a credentials object with read/write scope, build service object
@@ -23,9 +41,9 @@ class SheetService:
         response = "errorValue"
 
         # Attempt to read RAM file
-        while 'errorValue' in str(response) or 'Loading...' in str(response) and retry_count < self.MAX_RETRIES:
+        while 'errorValue' in str(response) or 'Loading...' in str(response) and retry_count < self.MaxRetries:
           response = self.__service.spreadsheets().values().get(spreadsheetId=spreadsheetID,range=range).execute()
-          time.sleep(self.TIMEOUT_WAIT)
+          time.sleep(self.TimeoutWait)
 
           retry_count += 1
 
@@ -37,10 +55,10 @@ class SheetService:
         print ("Trying to connect to Google Sheets...")
         self.Login()
 
-  def WriteSheetData(self, spreadsheetID : str, range : str, data : object) -> bool:
+  def WriteSheetData(self, spreadsheetID : str, range : str, data : object, dimension = 'COLUMNS') -> bool:
     # Resource object needed by GSheet API
     data_resource = {
-      'majorDimension' : 'COLUMNS',
+      'majorDimension' : dimension,
       'values' : data
     }
 
