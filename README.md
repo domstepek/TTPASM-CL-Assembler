@@ -1,4 +1,4 @@
-# TTPASM Output Generator
+# TTPASM Assembler Wrapper
 
 This project was designed to create an output TSV file from a TTPASM file. It works by uploading the TTPASM file to the Google Sheet assembler, retrieving the RAM file, sends the RAM file through the processor with the java command, and finally outputs to a TSV file.
 
