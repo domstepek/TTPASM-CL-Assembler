@@ -22,6 +22,7 @@ sheets = gsheets.SheetService()
 sheets.Login()
 
 print("Writing TTPASM file to Google Sheets...".ljust(50), end='\r')
+sheets.WriteSheetData(spreadsheet_id, 'source!A:A', [['']*1000])
 sheets.WriteSheetData(spreadsheet_id, 'source!A:A', code)
 print("Getting RAM file from Google Sheets...".ljust(50), end='\r')
 data = sheets.GetSheetData(spreadsheet_id, 'RAM file!A:A', True)

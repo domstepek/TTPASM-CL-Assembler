@@ -8,7 +8,8 @@ This project was designed to create an output TSV file from a TTPASM file. It wo
 ```
 pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib
 ```
-* Must share the assembler spreadsheet with full permissions to the service account head-601@ttpassembler.iam.gserviceaccount.com
+* Must share the assembler spreadsheet with full permissions to the service account
+**head-601@ttpassembler.iam.gserviceaccount.com**
 * Must put correct info in settings.txt file
 
 ## How to use
