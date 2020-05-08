@@ -29,3 +29,6 @@ This is an example of how I use the script to clarify usage.
 - Please let me know if there are any features I can implement
 - In the settings file, simply use exact path without any escape characters or sequences.
 - In the settings file, the spreadsheet ID can be extracted from a link as such. The spreadsheet ID for the link `https://docs.google.com/spreadsheets/d/abcdefg123456789/edit` would be **abcdefg123456789**
+
+## TODO
+- Add ability to put TSV file into the trace analyzer and retrieve the output
