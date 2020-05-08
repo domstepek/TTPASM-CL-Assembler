@@ -1,4 +1,4 @@
-PATH_TO_LOGISM="/Applications/Logisim.app/Contents/Resources/Java/logisim.jar"
-PATH_TO_PROCESSOR="/Users/dominiquestepek/Google Drive/CISP310/processor0003.circ"
-ASSEMBLER_SPREADSHEET="1ty55EMeBsPub07qrhwYD4GfNLqXFe4ytY2JpUnf3HAU"
-TRACE_SPREADSHEET="10Q5R2iNKjLqzTUvWiRV7PuwDBWJ8ePf2-9fGR1nCKjk"
+PATH_TO_LOGISM="<replace with path to logisim jar file>"
+PATH_TO_PROCESSOR="<replace with path to processor0003.circ file>"
+SPREADSHEET_ID="<replace with spreadsheet ID>"
+TRACE_SPREADSHEET="<replace with spreadsheet ID of trace analyzer>"
