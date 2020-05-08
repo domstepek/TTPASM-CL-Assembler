@@ -50,8 +50,9 @@ def CreateOutputFiles(ram_file : list, logisim_path : str, processor_path : str)
       csv_data.append(line[0])
 
   # Run java to load the CSV file and output to a TSV file
-  with open(f'{sys.argv[2]}.tsv', mode='r+') as output_file:
+  with open(f'{sys.argv[2]}.tsv', mode='w+') as output_file:
     subprocess.run(['java', '-jar', logisim_path, processor_path, '-tty', 'table', '-load', f'{sys.argv[2]}.csv'], stdout=output_file)
+
 
   with open(f'{sys.argv[2]}.tsv', mode='r+') as output_file:
     tsv_data.extend(output_file.readlines())
