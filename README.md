@@ -1,4 +1,4 @@
-# TTPASM Output Generator
+# TTPASM Assembler Wrapper
 
 This project was designed to create an output TSV file from a TTPASM file. It works by uploading the TTPASM file to the Google Sheet assembler, retrieving the RAM file, sends the RAM file through the processor with the java command, and finally outputs to a TSV file.
 
@@ -16,7 +16,7 @@ pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-
 1. Simply download this project to your machine
 2. Run the following shell command (remember this project requires python3.6+)
 ```
-python python assemble.py <path to ttpasm file> <path to output without any extensions>
+python assemble.py <path to ttpasm file> <path to output without any extensions>
 ```
 3. Check output directory for both the CSV and TSV files
 
