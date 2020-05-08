@@ -24,11 +24,7 @@ def Setup():
     assembler_id = re.search(pattern, settings_file.readline()).group(1)
     trace_id = re.search(pattern, settings_file.readline()).group(1)
 
-    # Convert TTPASM code into object valid for use with GSheet API
-  with open(sys.argv[1], mode='r+') as ttpasm_file:
-    code = [ttpasm_file.readlines()]
-
-  # Use GSheet API to write TTPASM code to spreadsheet and then retrieve RAM file
+  # Login to Google Sheets API
   sheets = gsheets.SheetService()
   sheets.Login()
 
@@ -37,11 +33,14 @@ def Setup():
     'processor_path' : processor_path,
     'spreadsheet_id' : assembler_id,
     'trace_id' : trace_id,
-    'ttpasm_code' : code,
     'sheets_service' : sheets
   }
 
-def UploadCode(sheet_service : gsheets.SheetService, spreadsheet_id : str, code : list) -> None:
+def UploadCode(sheet_service : gsheets.SheetService, spreadsheet_id : str) -> None:
+  # Convert TTPASM code into object valid for use with GSheet API
+  with open(sys.argv[1], mode='r+') as ttpasm_file:
+    code = [ttpasm_file.readlines()]
+  
   sheet_service.WriteSheetData(spreadsheet_id, SOURCE_RANGE, [[''] * 1000]) # This will clear out the previous code in the source sheet
   sheet_service.WriteSheetData(spreadsheet_id, SOURCE_RANGE, code) # Writes new TTPASM code to sheet
 
@@ -49,10 +48,10 @@ def DownloadRAMFile(sheet_service : gsheets.SheetService, spreadsheet_id : str) 
   return sheet_service.GetSheetData(spreadsheet_id, RAMFILE_RANGE) # Gets RAM file
 
 def CreateOutputFiles(ram_file : list, logisim_path : str, processor_path : str) -> Tuple[list, list]:
-  # Create the CSV file from the RAM file
-  csv_data = []
+  csv_data = [] # This object does not technically serve any purpose at the moment
   tsv_data = []
 
+  # Create the CSV file from the RAM file
   with open(f'{sys.argv[2]}.csv', mode='w+') as csv_file:
     for line in ram_file:
       csv_file.write(line[0] + '\n\r')
@@ -62,7 +61,9 @@ def CreateOutputFiles(ram_file : list, logisim_path : str, processor_path : str)
   with open(f'{sys.argv[2]}.tsv', mode='w+') as output_file:
     subprocess.run(['java', '-jar', logisim_path, processor_path, '-tty', 'table', '-load', f'{sys.argv[2]}.csv'], stdout=output_file)
 
-
+  # Get TSV data from the file
+  # Had to separate the TSV file access from the subprocess.run() call
+  # because it would be run concurrently, which is not desireable.
   with open(f'{sys.argv[2]}.tsv', mode='r+') as output_file:
     tsv_data.extend(output_file.readlines())
 
@@ -86,7 +87,7 @@ def main():
     exit(1)
 
   setup_data, setup_time = TimeAndPerform("Setting up script...", Setup)
-  upload_time = TimeAndPerform("Uploading TTPASM file to Google Sheets...", UploadCode, setup_data['sheets_service'], setup_data['spreadsheet_id'], setup_data['ttpasm_code'])[1]
+  upload_time = TimeAndPerform("Uploading TTPASM file to Google Sheets...", UploadCode, setup_data['sheets_service'], setup_data['spreadsheet_id'])[1]
   ram_file, download_time = TimeAndPerform("Getting RAM file from Google Sheets...", DownloadRAMFile, setup_data['sheets_service'], setup_data['spreadsheet_id'])
   file_data, create_files_time = TimeAndPerform("Creating CSV and TSV files...", CreateOutputFiles, ram_file, setup_data['logisim_path'], setup_data['processor_path'])
   trace_analyzer_time = TimeAndPerform('Uploading Trace Data...', StartTraceAnalyzer, setup_data['sheets_service'], setup_data['trace_id'], [line.split('\t') for line in file_data[1]])[1]

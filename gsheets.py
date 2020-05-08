@@ -1,5 +1,5 @@
 """
-Name: gsheet.py
+Name: gsheets.py
 Description:
 This script is the class definition and implementation for the SheetService used
 by assemble.py. The SheetService acts as a wrapper for the Google Sheets API and
@@ -35,8 +35,8 @@ class SheetService:
   def __init__(self):
     self.__scopes = ['https://www.googleapis.com/auth/spreadsheets'] # Read and write permissions
     self.__service_acc_file = "assets/service-account.json"
-    self.__max_retries = 5
-    self.__timeout_wait = 2.5
+    self.__max_retries = 5 # Default: 5 max retries 
+    self.__timeout_wait = 2.5 # Default: 2.5 second timeout
 
   def Login(self) -> None:
     # Create a credentials object with read/write scope, build service object
