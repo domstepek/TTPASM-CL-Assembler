@@ -1,3 +1,12 @@
+"""
+Name: gsheet.py
+Description:
+This script is the class definition and implementation for the SheetService used
+by assemble.py. The SheetService acts as a wrapper for the Google Sheets API and
+is capable of updating and reading spreadsheet cells.
+Coded by: Dom Stepek
+"""
+
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
 import time

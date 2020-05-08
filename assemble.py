@@ -1,3 +1,12 @@
+"""
+Name: assemble.py
+Description:
+When called with proper arguments, this script will take the TTPASM code located
+at the first argument and create two, CSV and TSV, output files as well as upload
+the output TSV file to the trace analyzer Google spreadsheet.
+Coded by: Dom Stepek
+"""
+
 import subprocess, sys, gsheets, re, datetime as dt
 from typing import *
 
