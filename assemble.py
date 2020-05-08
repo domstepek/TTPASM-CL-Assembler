@@ -1,45 +1,74 @@
 import subprocess, sys, gsheets, re, datetime as dt
+from typing import *
 
 SETTINGS_FILE = 'settings.txt'
+SOURCE_RANGE = 'source!A:A'
+RAMFILE_RANGE = 'RAM file!A:A'
 
-# Check for valid arg length
-if len(sys.argv) != 3:
-  print ('assemble.py <path to assembly file> <path to output file without extension>')
-  exit(1)
+def Setup():
+  # Retrieves settings from settings file
+  pattern = r'.+?=\"(.+)\"'
+  with open(SETTINGS_FILE, mode='r+') as settings_file:
+    logisim_path = re.search(pattern, settings_file.readline()).group(1)
+    processor_path = re.search(pattern, settings_file.readline()).group(1)
+    spreadsheet_id = re.search(pattern, settings_file.readline()).group(1)
 
-print("Setting up script...".ljust(50), end='\r')
-start = dt.datetime.now()
+    # Convert TTPASM code into object valid for use with GSheet API
+  with open(sys.argv[1], mode='r+') as ttpasm_file:
+    code = [ttpasm_file.readlines()]
 
-# Retrieves settings from settings file
-pattern = r'.+?=\"(.+)\"'
-with open(SETTINGS_FILE, mode='r+') as settings_file:
-  logisim_path = re.search(pattern, settings_file.readline()).group(1)
-  processor_path = re.search(pattern, settings_file.readline()).group(1)
-  spreadsheet_id = re.search(pattern, settings_file.readline()).group(1)
+  # Use GSheet API to write TTPASM code to spreadsheet and then retrieve RAM file
+  sheets = gsheets.SheetService()
+  sheets.Login()
 
-# Convert TTPASM code into object valid for use with GSheet API
-with open(sys.argv[1], mode='r+') as ttpasm_file:
-  code = [ttpasm_file.readlines()]
+  return {
+    'logisim_path' : logisim_path,
+    'processor_path' : processor_path,
+    'spreadsheet_id' : spreadsheet_id,
+    'ttpasm_code' : code,
+    'sheets_service' : sheets
+  }
 
-# Use GSheet API to write TTPASM code to spreadsheet and then retrieve RAM file
-sheets = gsheets.SheetService()
-sheets.Login()
+def UploadCode(sheet_service : gsheets.SheetService, spreadsheet_id : str, code : list) -> None:
+  sheet_service.WriteSheetData(spreadsheet_id, SOURCE_RANGE, [[''] * 1000]) # This will clear out the previous code in the source sheet
+  sheet_service.WriteSheetData(spreadsheet_id, SOURCE_RANGE, code) # Writes new TTPASM code to sheet
 
-print("Writing TTPASM file to Google Sheets...".ljust(50), end='\r')
-sheets.WriteSheetData(spreadsheet_id, 'source!A:A', [['']*1000]) # This will clear out the previous code in the source sheet
-sheets.WriteSheetData(spreadsheet_id, 'source!A:A', code) # Writes new TTPASM code to sheet
-print("Getting RAM file from Google Sheets...".ljust(50), end='\r')
-data = sheets.GetSheetData(spreadsheet_id, 'RAM file!A:A', True) # Gets RAM file
+def DownloadRAMFile(sheet_service : gsheets.SheetService, spreadsheet_id : str) -> list:
+  return sheet_service.GetSheetData(spreadsheet_id, RAMFILE_RANGE) # Gets RAM file
 
-print("Creating CSV and TSV files...".ljust(50), end='\r')
-# Create the CSV file from the RAM file
-with open(f'{sys.argv[2]}.csv', mode='w+') as csv_file:
-  for line in data:
-    csv_file.write(line[0] + '\n\r')
+def CreateOutputFiles(ram_file : list, logisim_path : str, processor_path : str) -> None:
+  # Create the CSV file from the RAM file
+  with open(f'{sys.argv[2]}.csv', mode='w+') as csv_file:
+    for line in ram_file:
+      csv_file.write(line[0] + '\n\r')
 
-# Run java to load the CSV file and output to a TSV file
-with open(f'{sys.argv[2]}.tsv', mode='w+') as output_file:
-  subprocess.run(['java', '-jar', logisim_path, processor_path, '-tty', 'table', '-load', f'{sys.argv[2]}.csv'], stdout=output_file)
+  # Run java to load the CSV file and output to a TSV file
+  with open(f'{sys.argv[2]}.tsv', mode='w+') as output_file:
+    subprocess.run(['java', '-jar', logisim_path, processor_path, '-tty', 'table', '-load', f'{sys.argv[2]}.csv'], stdout=output_file)
 
-stop = dt.datetime.now()
-print(f"Succesfully wrote output to {sys.argv[2]}.tsv in {(stop - start).total_seconds()} seconds")
+def TimeAndPerform(start_msg : str, func : Callable[[list], Any], *args) -> Tuple[Any, float]:
+  print(start_msg.ljust(50), end='\r')
+
+  start = dt.datetime.now()
+  ret_data = func(*args)
+  
+  return (ret_data, (dt.datetime.now() - start).total_seconds())
+
+
+if __name__ == '__main__':
+  # Check for valid arg length
+  if len(sys.argv) != 3:
+    print ('assemble.py <path to assembly file> <path to output file without extension>')
+    exit(1)
+
+  setup_data, setup_time = TimeAndPerform("Setting up script...", Setup)
+  upload_time = TimeAndPerform("Uploading TTPASM file to Google Sheets...", UploadCode, setup_data['sheets_service'], setup_data['spreadsheet_id'], setup_data['ttpasm_code'])[1]
+  ram_file, download_time = TimeAndPerform("Getting RAM file from Google Sheets...", DownloadRAMFile, setup_data['sheets_service'], setup_data['spreadsheet_id'])
+  create_files_time = TimeAndPerform("Creating CSV and TSV files...", CreateOutputFiles, ram_file, setup_data['logisim_path'], setup_data['processor_path'])[1]
+
+
+  print(f"""Succesfully wrote output to '{sys.argv[2]}.csv' and '{sys.argv[2]}.tsv'
+  Setup took {setup_time} seconds
+  Uploading code took {upload_time} seconds
+  Downloading RAM file took {download_time} seconds
+  Creating output files took {create_files_time} seconds""")

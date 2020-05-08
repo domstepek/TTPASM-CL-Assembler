@@ -1,3 +1,3 @@
-PATH_TO_LOGISM="<replace with path to logisim jar file>"
-PATH_TO_PROCESSOR="<replace with path to processor0003.circ file>"
-SPREADSHEET_ID="<replace with spreadsheet ID>"
+PATH_TO_LOGISM="/Applications/Logisim.app/Contents/Resources/Java/logisim.jar"
+PATH_TO_PROCESSOR="/Users/dominiquestepek/Google Drive/CISP310/processor0003.circ"
+SPREADSHEET_ID="1ty55EMeBsPub07qrhwYD4GfNLqXFe4ytY2JpUnf3HAU"

@@ -3,6 +3,9 @@ from google.oauth2 import service_account
 import time
 
 class SheetService:
+  MAX_RETRIES = 5 # Max amount of retries available
+  TIMEOUT_WAIT = 2.5 # Time between retries
+
   def __init__(self):
     self.__scopes = ['https://www.googleapis.com/auth/spreadsheets'] # Read and write permissions
     self.__service_acc_file = "service-account.json"
@@ -13,17 +16,17 @@ class SheetService:
     creds = service_account.Credentials.from_service_account_file(self.__service_acc_file, scopes=self.__scopes)
     self.__service = build('sheets', 'v4', credentials=creds)
 
-  def GetSheetData(self, spreadsheetID : str, range : str, wait_for_ready : bool) -> list:
+  def GetSheetData(self, spreadsheetID : str, range : str) -> list:
     while True:
       try:
-        no_of_retry = 5 # Max amount of retries available
         retry_count = 0
         response = "errorValue"
 
         # Attempt to read RAM file
-        while 'errorValue' in str(response) or 'Loading...' in str(response) and retry_count < no_of_retry:
+        while 'errorValue' in str(response) or 'Loading...' in str(response) and retry_count < self.MAX_RETRIES:
           response = self.__service.spreadsheets().values().get(spreadsheetId=spreadsheetID,range=range).execute()
-          time.sleep(2.5)
+          time.sleep(self.TIMEOUT_WAIT)
+
           retry_count += 1
 
         if 'errorValue' in response:
