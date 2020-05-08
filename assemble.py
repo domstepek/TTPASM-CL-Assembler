@@ -1,7 +1,7 @@
 import subprocess, sys, gsheets, re, datetime as dt
 from typing import *
 
-SETTINGS_FILE = 'settings.txt'
+SETTINGS_FILE = 'assets/settings.txt'
 SOURCE_RANGE = 'source!A:A'
 RAMFILE_RANGE = 'RAM file!A:A'
 TRACE_RANGE = 'Sheet1!A:M'

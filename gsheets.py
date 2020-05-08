@@ -25,7 +25,7 @@ class SheetService:
 
   def __init__(self):
     self.__scopes = ['https://www.googleapis.com/auth/spreadsheets'] # Read and write permissions
-    self.__service_acc_file = "service-account.json"
+    self.__service_acc_file = "assets/service-account.json"
     self.__max_retries = 5
     self.__timeout_wait = 2.5
 
