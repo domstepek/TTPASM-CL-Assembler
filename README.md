@@ -16,7 +16,7 @@ pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-
 1. Simply download this project to your machine
 2. Run the following shell command (remember this project requires python3.6+)
 ```
-python python assemble.py <path to ttpasm file> <path to output without any extensions>
+python assemble.py <path to ttpasm file> <path to output without any extensions>
 ```
 3. Check output directory for both the CSV and TSV files
 
