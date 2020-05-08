@@ -20,6 +20,10 @@ python python assemble.py <path to ttpasm file> <path to output without any exte
 ```
 3. Check output directory for both the CSV and TSV files
 
+## Example usage
+This is an example of how I use the script to clarify usage.
+![example](https://github.com/domstepek/TTPASM-CL-Assembler/blob/master/example.png?raw=true)
+
 ## Notes
 - Please let me know if there are any errors that I can fix
 - Please let me know if there are any features I can implement
