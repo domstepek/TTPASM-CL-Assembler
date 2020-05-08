@@ -4,22 +4,23 @@ import time
 
 class SheetService:
   def __init__(self):
-    self.__scopes = ['https://www.googleapis.com/auth/spreadsheets']
+    self.__scopes = ['https://www.googleapis.com/auth/spreadsheets'] # Read and write permissions
     self.__service_acc_file = "service-account.json"
     self.__enabled = False
 
   def Login(self) -> None:
+    # Create a credentials object with read/write scope, build service object
     creds = service_account.Credentials.from_service_account_file(self.__service_acc_file, scopes=self.__scopes)
     self.__service = build('sheets', 'v4', credentials=creds)
-    self.__enabled = True
 
   def GetSheetData(self, spreadsheetID : str, range : str, wait_for_ready : bool) -> list:
     while True:
       try:
-        no_of_retry = 5
+        no_of_retry = 5 # Max amount of retries available
         retry_count = 0
         response = "errorValue"
 
+        # Attempt to read RAM file
         while 'errorValue' in str(response) or 'Loading...' in str(response) and retry_count < no_of_retry:
           response = self.__service.spreadsheets().values().get(spreadsheetId=spreadsheetID,range=range).execute()
           time.sleep(2.5)
@@ -33,7 +34,8 @@ class SheetService:
         print ("Trying to connect to Google Sheets...")
         self.Login()
 
-  def WriteSheetData(self, spreadsheetID : str, range : str, data : object):
+  def WriteSheetData(self, spreadsheetID : str, range : str, data : object) -> bool:
+    # Resource object needed by GSheet API
     data_resource = {
       'majorDimension' : 'COLUMNS',
       'values' : data
@@ -41,6 +43,7 @@ class SheetService:
 
     while True:
       try:
+        # Send request to write
         self.__service.spreadsheets().values().update(spreadsheetId=spreadsheetID, range=range, body=data_resource, valueInputOption="RAW").execute()
         return True
       except ConnectionResetError:
