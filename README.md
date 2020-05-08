@@ -20,6 +20,7 @@ python assemble.py <path to ttpasm file> <path to output without any extensions>
 ```
 
 **Example Usage**
+
 ![example](https://github.com/domstepek/TTPASM-CL-Assembler/blob/master/assets/example.png?raw=true)
 
 ## Notes
