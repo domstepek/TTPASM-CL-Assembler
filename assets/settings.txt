@@ -1,0 +1,4 @@
+PATH_TO_LOGISM="<replace with path to logisim jar file>"
+PATH_TO_PROCESSOR="<replace with path to processor0003.circ file>"
+SPREADSHEET_ID="<replace with spreadsheet ID>"
+TRACE_SPREADSHEET="<replace with spreadsheet ID of trace analyzer>"
