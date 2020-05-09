@@ -7,25 +7,24 @@ the output TSV file to the trace analyzer Google spreadsheet.
 Coded by: Dom Stepek
 """
 
-import subprocess, sys, gsheets, re, datetime as dt
+import subprocess, sys, os, gsheets, re, datetime as dt
 from typing import *
 
-SETTINGS_FILE = 'assets/settings.txt'
+SETTINGS_FILE = '/assets/settings.txt'
+SERVICE_ACCOUNT_FILE = '/assets/service-account.json'
 SOURCE_RANGE = 'source!A:A'
 RAMFILE_RANGE = 'RAM file!A:A'
 TRACE_RANGE = 'Sheet1!A:M'
 
 def Setup():
+  current_directory = os.path.dirname(os.path.realpath(__file__))
   # Retrieves settings from settings file
   pattern = r'.+?=\"(.+)\"'
-  with open(SETTINGS_FILE, mode='r+') as settings_file:
-    logisim_path = re.search(pattern, settings_file.readline()).group(1)
-    processor_path = re.search(pattern, settings_file.readline()).group(1)
-    assembler_id = re.search(pattern, settings_file.readline()).group(1)
-    trace_id = re.search(pattern, settings_file.readline()).group(1)
+  with open(current_directory + SETTINGS_FILE, mode='r+') as settings_file:
+    logisim_path, processor_path, assembler_id, trace_id = re.findall(pattern, settings_file.read())
 
   # Login to Google Sheets API
-  sheets = gsheets.SheetService()
+  sheets = gsheets.SheetService(current_directory + SERVICE_ACCOUNT_FILE)
   sheets.Login()
 
   return {
@@ -41,14 +40,14 @@ def UploadCode(sheet_service : gsheets.SheetService, spreadsheet_id : str) -> No
   with open(sys.argv[1], mode='r+') as ttpasm_file:
     code = [ttpasm_file.readlines()]
   
-  sheet_service.WriteSheetData(spreadsheet_id, SOURCE_RANGE, [[''] * 1000]) # This will clear out the previous code in the source sheet
+  sheet_service.ClearRange(spreadsheet_id, SOURCE_RANGE)
   sheet_service.WriteSheetData(spreadsheet_id, SOURCE_RANGE, code) # Writes new TTPASM code to sheet
 
 def DownloadRAMFile(sheet_service : gsheets.SheetService, spreadsheet_id : str) -> list:
   return sheet_service.GetSheetData(spreadsheet_id, RAMFILE_RANGE) # Gets RAM file
 
 def CreateOutputFiles(ram_file : list, logisim_path : str, processor_path : str) -> Tuple[list, list]:
-  csv_data = [] # This object does not technically serve any purpose at the moment
+  csv_data = [] # This object does not technically serve any purpose at the moment other than for the user convienence
   tsv_data = []
 
   # Create the CSV file from the RAM file
@@ -65,9 +64,14 @@ def CreateOutputFiles(ram_file : list, logisim_path : str, processor_path : str)
   # Had to separate the TSV file access from the subprocess.run() call
   # because it would be run concurrently, which is not desireable.
   with open(f'{sys.argv[2]}.tsv', mode='r+') as output_file:
-    tsv_data.extend(output_file.readlines())
+    tsv_data = output_file.readlines()
+    
+  tsv_data = [line[:-1].split('\t') for line in tsv_data] # Remove '\n' at end of each line and split by tab escape sequences
 
-  return (csv_data, [line[:-1] for line in tsv_data])
+  return {
+    'csv_data' : csv_data,
+    'tsv_data' : tsv_data
+  }
 
 def StartTraceAnalyzer(sheet_service : gsheets.SheetService, trace_id : str, trace : List[str]) -> None:
   sheet_service.ClearRange(trace_id, TRACE_RANGE)
@@ -88,10 +92,10 @@ def main():
     exit(1)
 
   setup_data, setup_time = TimeAndPerform("Setting up script...", Setup)
-  upload_time = TimeAndPerform("Uploading TTPASM file to Google Sheets...", UploadCode, setup_data['sheets_service'], setup_data['spreadsheet_id'])[1]
+  _, upload_time = TimeAndPerform("Uploading TTPASM file to Google Sheets...", UploadCode, setup_data['sheets_service'], setup_data['spreadsheet_id'])
   ram_file, download_time = TimeAndPerform("Getting RAM file from Google Sheets...", DownloadRAMFile, setup_data['sheets_service'], setup_data['spreadsheet_id'])
   file_data, create_files_time = TimeAndPerform("Creating CSV and TSV files...", CreateOutputFiles, ram_file, setup_data['logisim_path'], setup_data['processor_path'])
-  trace_analyzer_time = TimeAndPerform('Uploading Trace Data...', StartTraceAnalyzer, setup_data['sheets_service'], setup_data['trace_id'], [line.split('\t') for line in file_data[1]])[1]
+  _, trace_analyzer_time = TimeAndPerform('Uploading Trace Data...', StartTraceAnalyzer, setup_data['sheets_service'], setup_data['trace_id'], file_data['tsv_data'])
 
   print(f"""Succesfully wrote output to '{sys.argv[2]}.csv' and '{sys.argv[2]}.tsv'
   Setup took {setup_time} seconds
