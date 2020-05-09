@@ -61,8 +61,11 @@ class SheetService:
           
         return response.get('values', [])
       except ConnectionResetError:
-        print ("Trying to connect to Google Sheets...")
+        print ("Trying to connect to Google Sheets...", end='\r')
         self.Login()
+      except Exception:
+        raise Exception("Unknown error")
+
 
   def WriteSheetData(self, spreadsheetID : str, range : str, data : object, dimension = 'COLUMNS') -> bool:
     # Resource object needed by GSheet API
@@ -77,6 +80,18 @@ class SheetService:
         self.__service.spreadsheets().values().update(spreadsheetId=spreadsheetID, range=range, body=data_resource, valueInputOption="RAW").execute()
         return True
       except ConnectionResetError:
-        print ("Trying to connect to Google Sheets...")
+        print ("Trying to connect to Google Sheets...", end='\r')
         self.Login()
+      except Exception:
+        return False
 
+  def ClearRange(self, spreadsheetID : str, range : str) -> bool:
+    while True:
+      try:
+        self.__service.spreadsheets().values().clear(spreadsheetId=spreadsheetID, range=range).execute()
+        return True
+      except ConnectionResetError:
+        print("Trying to connect to Google Sheets...", end='\r')
+        self.Login()
+      except Exception:
+        return False

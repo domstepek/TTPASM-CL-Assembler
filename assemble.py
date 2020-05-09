@@ -70,6 +70,7 @@ def CreateOutputFiles(ram_file : list, logisim_path : str, processor_path : str)
   return (csv_data, [line[:-1] for line in tsv_data])
 
 def StartTraceAnalyzer(sheet_service : gsheets.SheetService, trace_id : str, trace : List[str]) -> None:
+  sheet_service.ClearRange(trace_id, TRACE_RANGE)
   sheet_service.WriteSheetData(trace_id, TRACE_RANGE, trace, 'ROWS')
 
 def TimeAndPerform(start_msg : str, func : Callable[[list], Any], *args) -> Tuple[Any, float]:
