@@ -28,6 +28,12 @@ python assemble.py <path to ttpasm file> <path to output without any extensions>
 - Please let me know if there are any features I can implement
 - In the settings file, simply use exact path without any escape characters or sequences.
 - In the settings file, the spreadsheet ID can be extracted from a link as such. The spreadsheet ID for the link `https://docs.google.com/spreadsheets/d/abcdefg123456789/edit` would be **abcdefg123456789**
+- Use absolute paths everywhere!
+
+## Common Errors and Problems
+- If you get a 'invalid syntax' error, this is more than likely a result of you using the wrong Python version. The default `python` command refers to version 2.7. To use the right version, either install a virtual env version of Python3.6+ or use `python3` and `pip3` instead of `python` and `pip`.
+- If you receive a message asking to locate `alu.circ` and `regbank.circ`, do not do it through this script. Open up the GUI logisim, open up `processor0003.circ`, locate both the circ files, then save your `processor0003.circ` file.
+
 
 ## TODO
 - Retrieve the output of trace analyzer, perhaps?
